@@ -1,13 +1,13 @@
 name:  "GivTCP"
 description:  "TCP Modbus connection to MQTT/JSON for Givenergy Battery/PV Invertors"
 version:  "2.0.11"
-#image: andrewbuckingham/giv_tcp
+image: britkat/giv_tcp-ma
 slug:  "givtcp"
 init:  true
 map:
   - config:rw
 boot:  auto
-url:  https://github.com/andrewbuckingham/giv_tcp
+url:  https://github.com/britkat1980/giv_tcp
 legacy:  true
 arch: 
   - aarch64
