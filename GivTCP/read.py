@@ -25,6 +25,16 @@ from repositories import PickleCacheRepository
 # Phase 5 refactoring: Replace file locks with proper synchronization
 from concurrency import ThreadLockManager
 
+# Phase 3 refactoring: Service layer extraction
+from services import (
+    HardwareCommunicationService,
+    EnergyCalculationService,
+    PowerCalculationService,
+    BatteryMetricsService,
+    ControlModeService,
+    DataProcessingService
+)
+
 logging.getLogger("givenergy_modbus").setLevel(logging.CRITICAL)
 logging.getLogger("rq.worker").setLevel(logging.CRITICAL)
 
@@ -53,8 +63,191 @@ else:
     lock_manager = None
     logger.info("Using legacy file-based locking")
 
+# Phase 3: Initialize services
+# Feature flag: set environment variable USE_NEW_SERVICES=true to enable
+USE_NEW_SERVICES = os.getenv('USE_NEW_SERVICES', 'false').lower() == 'true'
+if USE_NEW_SERVICES:
+    # Initialize all services
+    hardware_service = HardwareCommunicationService(
+        giv_client=GivClient,
+        lock_manager=lock_manager,
+        cache_repo=cache_repo,
+        lock_file_path=GivLUT.lockfile,
+        last_update_path=GivLUT.lastupdate,
+        inverter_ip=GiV_Settings.invertorIP,
+        instance_id=str(GiV_Settings.givtcp_instance),
+        use_new_locks=USE_NEW_LOCKS,
+        use_new_cache=USE_NEW_CACHE
+    )
+    energy_service = EnergyCalculationService()
+    power_service = PowerCalculationService()
+    battery_service = BatteryMetricsService()
+    control_service = ControlModeService()
+    processing_service = DataProcessingService(
+        cache_repo=cache_repo,
+        cache_file_path=GivLUT.regcache,
+        instance_id=str(GiV_Settings.givtcp_instance),
+        use_new_cache=USE_NEW_CACHE,
+        rate_calc_func=None,  # Will be passed at call time
+        battery_value_func=None,  # Will be passed at call time
+        data_cleansing_func=None,  # Will be passed at call time
+        dict_to_list_func=dicttoList
+    )
+    logger.info("Using new service-based implementation for getData")
+else:
+    hardware_service = None
+    energy_service = None
+    power_service = None
+    battery_service = None
+    control_service = None
+    processing_service = None
+    logger.info("Using legacy monolithic implementation for getData")
+
 
 def getData(fullrefresh):  # Read from Invertor put in cache
+    """
+    Main entry point for reading inverter data.
+
+    Routes to service-based or legacy implementation based on USE_NEW_SERVICES flag.
+    """
+    if USE_NEW_SERVICES:
+        return getData_with_services(fullrefresh)
+    else:
+        return getData_legacy(fullrefresh)
+
+
+def getData_with_services(fullrefresh):
+    """
+    Service-based implementation using extracted services.
+
+    Phase 3 refactoring: Orchestrates all 6 services to read and process inverter data.
+    """
+    logger.info("----------------------------Starting (Services)----------------------------")
+    result = {}
+
+    try:
+        # 1. Hardware communication (with locking)
+        hw_result = hardware_service.read_inverter_data(fullrefresh)
+        inverter = hw_result.inverter
+        batteries = hw_result.batteries
+
+        # 2. Energy calculations
+        energy_total = energy_service.calculate_total_energy(inverter)
+        energy_today = energy_service.calculate_daily_energy(inverter)
+
+        # 3. Power calculations
+        power = power_service.calculate_power_stats(inverter)
+        flows = power_service.calculate_power_flows(power)
+
+        # 4. Battery metrics (if batteries present)
+        battery_metrics = {}
+        battery_details = {}
+        battery_energy_totals = {}
+
+        if int(GiV_Settings.numBatteries) > 0:
+            # Get previous SOC for fallback
+            cache_stack = processing_service.load_cache_stack()
+            previous_soc = None
+            if cache_stack and len(cache_stack) > 4 and cache_stack[4] != 0:
+                if 'Power' in cache_stack[4] and 'Power' in cache_stack[4]['Power']:
+                    previous_soc = cache_stack[4]['Power']['Power'].get('SOC')
+
+            # Calculate battery metrics
+            battery_metrics = battery_service.calculate_battery_metrics(
+                inverter,
+                num_batteries=int(GiV_Settings.numBatteries),
+                previous_soc=previous_soc
+            )
+
+            # Get battery energy totals (with firmware version handling)
+            battery_energy_totals = battery_service.get_battery_energy_totals(inverter, batteries)
+
+            # Refine power flows with battery routing
+            battery_flows = battery_service.calculate_battery_flows(
+                pv_power=power.get('PV_Power', 0),
+                load_power=power.get('Load_Power', 0),
+                export_power=power.get('Export_Power', 0),
+                import_power=power.get('Import_Power', 0),
+                charge_power=battery_metrics.get('Charge_Power', 0),
+                discharge_power=battery_metrics.get('Discharge_Power', 0)
+            )
+            flows.update(battery_flows)
+
+            # Get battery details
+            previous_battery_details = None
+            if cache_stack and len(cache_stack) > 4 and cache_stack[4] != 0:
+                previous_battery_details = cache_stack[4].get('Battery_Details')
+
+            battery_details = battery_service.get_battery_details(batteries, previous_battery_details)
+
+            # Merge battery power metrics into power dict
+            power.update(battery_metrics)
+
+            # Merge battery energy totals
+            energy_total.update(battery_energy_totals)
+
+        # 5. Control mode and configuration
+        cache_stack = processing_service.load_cache_stack()
+        cache_data = cache_stack[4] if cache_stack and len(cache_stack) > 4 and cache_stack[4] != 0 else None
+
+        control_mode = control_service.detect_control_mode(inverter, cache_data)
+        timeslots = control_service.get_timeslots(inverter)
+        inverter_details = control_service.get_inverter_details(inverter)
+
+        # 6. Assemble output
+        multi_output = {
+            'Power': {'Power': power, 'Flows': flows},
+            'Energy': {'Today': energy_today, 'Total': energy_total},
+            'Timeslots': timeslots,
+            'Control': control_mode,
+            'Invertor_Details': inverter_details,
+            'Battery_Details': battery_details,
+            'Last_Updated_Time': hw_result.timestamp,
+            'Time_Since_Last_Update': hw_result.time_since_last,
+            'status': hw_result.status
+        }
+
+        # 7. Validate energy data (raise ValueError if all zeros)
+        if int(GiV_Settings.numBatteries) > 0:
+            battery_service.validate_energy_data(energy_total)
+
+        # 8. Post-processing (rates, smoothing, caching)
+        # Set functions that are defined later in the file
+        processing_service.rate_calc_func = ratecalcs
+        processing_service.battery_value_func = calcBatteryValue
+        processing_service.data_cleansing_func = dataCleansing
+
+        cache_stack = processing_service.load_cache_stack()
+        multi_output = processing_service.process_output(multi_output, cache_stack)
+
+        # 9. Update and save cache
+        cache_stack = processing_service.update_cache_stack(cache_stack, multi_output)
+        processing_service.save_cache_stack(cache_stack)
+
+        result['result'] = "Success retrieving data"
+        logger.info("Invertor data processed successfully using services")
+
+        # Success, so delete oldDataCount
+        if exists(GivLUT.oldDataCount):
+            os.remove(GivLUT.oldDataCount)
+
+    except ValueError as e:
+        # All zeros validation error
+        GivLUT.consecFails()
+        logger.error(f"Data validation error: {e}")
+        result['result'] = f"Error: {e}"
+        return json.dumps(result)
+
+    except Exception as e:
+        GivLUT.consecFails()
+        logger.error(f"Error in service-based getData: {e}")
+        result['result'] = f"Error: {e}"
+        return json.dumps(result)
+
+    return json.dumps(result, indent=4, sort_keys=True, default=str)
+
+
+def getData_legacy(fullrefresh):  # Read from Invertor put in cache
     # plant=Plant(number_batteries=int(GiV_Settings.numBatteries))
     energy_total_output = {}
     energy_today_output = {}
