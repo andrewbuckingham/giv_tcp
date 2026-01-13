@@ -1,15 +1,61 @@
 version: "3.9"
+
 services:
-  GivTCP:
-    image: britkat/giv_tcp-dev:latest
+  givtcp:
+    image: rpi-matthew.fritz.box:5000/givtcp:latest
+    container_name: givtcp
+    hostname: givtcp
     ports:
       - "1883:1883"                   # MQTT
       - "8098:8099"                   # REST and Config web server (https on 8098)
-      - "3000:3000"                   # WEB Dashboard
+      - "3000:3000"                   # Web Dashboard
+      - "6379:6379"                   # Redis (optional, for external access)
     volumes:
-      - c:\config\GivTCP:/config/GivTCP
-    network_mode: "host"
-    restart: always
+      - ./config:/config              # Configuration and cache storage
+    restart: unless-stopped
     privileged: true
     environment:
-      - TZ = "Europe/London"
+      # Timezone
+      - TZ=Europe/London
+
+      # Inverter Configuration
+      - INVERTOR_IP=192.168.1.100     # Change to your inverter IP
+      - INVERTOR_NUM_BATTERIES=1      # Number of batteries (0-3)
+
+      # MQTT Configuration
+      - MQTT_ADDRESS=127.0.0.1        # MQTT broker address
+      - MQTT_USERNAME=                # MQTT username (if required)
+      - MQTT_PASSWORD=                # MQTT password (if required)
+      - MQTT_TOPIC=GivEnergy          # MQTT topic prefix
+
+      # Home Assistant Integration
+      - HA_AUTO_D=True                # Auto-discovery for Home Assistant
+
+      # Logging and Debug
+      - LOG_LEVEL=Info                # Options: Debug, Info, Warning, Error, Critical
+      - PRINT_RAW=False               # Print raw register data
+
+      # Application Settings
+      - SELF_RUN_LOOP_TIMER=5         # Self-run loop interval (seconds)
+      - QUEUE_RETRIES=2               # Number of queue retries
+      - CACHELOCATION=/config         # Cache storage location
+
+      # Phase 1-5 Refactoring Feature Flags
+      # Set to "true" to enable new implementations
+      - USE_NEW_CACHE=false           # Phase 2: Thread-safe cache repository
+      - USE_NEW_LOCKS=false           # Phase 5: ThreadLockManager (eliminates TOCTOU)
+      - USE_NEW_SERVICES=false        # Phase 3: Service layer extraction
+
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6345/readData"]
+      interval: 60s
+      timeout: 10s
+      start_period: 120s
+      retries: 3
+
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "io.hass.type=addon"
+      - "io.hass.name=GivTCP"
+      - "io.hass.description=GivTCP - GivEnergy Integration for Home Assistant"
+      - "io.hass.version=latest"

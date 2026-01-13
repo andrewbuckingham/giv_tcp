@@ -52,6 +52,32 @@ COPY ingress/ ./ingress
 # Copy static site files
 COPY --from=givtcp_vuejs_tmp /app/dist /app/ingress/
 
+# Environment variables for Phase 1-5 refactoring feature flags
+# Phase 2: Cache Repository
+ENV USE_NEW_CACHE="false"
+# Phase 5: Lock Manager
+ENV USE_NEW_LOCKS="false"
+# Phase 3: Service Layer
+ENV USE_NEW_SERVICES="false"
+
+# Standard GivTCP environment variables
+ENV INVERTOR_IP="" \
+    INVERTOR_NUM_BATTERIES="0" \
+    MQTT_ADDRESS="127.0.0.1" \
+    MQTT_USERNAME="" \
+    MQTT_PASSWORD="" \
+    MQTT_TOPIC="GivEnergy" \
+    HA_AUTO_D="True" \
+    LOG_LEVEL="Info" \
+    PRINT_RAW="False" \
+    SELF_RUN_LOOP_TIMER="5" \
+    QUEUE_RETRIES="2" \
+    CACHELOCATION="/config"
+
 EXPOSE 1883 3000 6379 8099
+
+# Health check
+HEALTHCHECK --interval=60s --timeout=10s --start-period=120s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:6345/readData || exit 1
 
 CMD ["python3", "/app/startup.py"]
