@@ -1,0 +1,232 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Add-on: Local (RPi4)",
+            "type": "shell",
+            "command": "${workspaceFolder}/build-addon.sh",
+            "args": [],
+            "windows": {
+                "command": "powershell",
+                "args": [
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-File",
+                    "${workspaceFolder}/build-addon.ps1"
+                ]
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build and Push Add-on: Latest",
+            "type": "shell",
+            "command": "${workspaceFolder}/build-addon.sh",
+            "args": [
+                "--push"
+            ],
+            "windows": {
+                "command": "powershell",
+                "args": [
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-File",
+                    "${workspaceFolder}/build-addon.ps1",
+                    "-Push"
+                ]
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "group": "build"
+        },
+        {
+            "label": "Build and Push Add-on: Dev Tag",
+            "type": "shell",
+            "command": "${workspaceFolder}/build-addon.sh",
+            "args": [
+                "--push",
+                "--tag",
+                "dev"
+            ],
+            "windows": {
+                "command": "powershell",
+                "args": [
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-File",
+                    "${workspaceFolder}/build-addon.ps1",
+                    "-Push",
+                    "-Tag",
+                    "dev"
+                ]
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "group": "build"
+        },
+        {
+            "label": "Build and Push Add-on: Custom Version",
+            "type": "shell",
+            "command": "${workspaceFolder}/build-addon.sh",
+            "args": [
+                "--push",
+                "--version",
+                "${input:version}"
+            ],
+            "windows": {
+                "command": "powershell",
+                "args": [
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-File",
+                    "${workspaceFolder}/build-addon.ps1",
+                    "-Push",
+                    "-Version",
+                    "${input:version}"
+                ]
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "group": "build"
+        },
+        {
+            "label": "Docker: Clean Buildx Cache",
+            "type": "shell",
+            "command": "docker",
+            "args": [
+                "buildx",
+                "prune",
+                "-f"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Docker: Remove Buildx Builder",
+            "type": "shell",
+            "command": "docker",
+            "args": [
+                "buildx",
+                "rm",
+                "givtcp-builder"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Docker: Show Local Images",
+            "type": "shell",
+            "command": "docker",
+            "args": [
+                "images",
+                "rpi-matthew.fritz.box:5000/giv_tcp"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Test: Run Add-on Container Locally",
+            "type": "shell",
+            "command": "docker",
+            "args": [
+                "run",
+                "--rm",
+                "-it",
+                "-p",
+                "1883:1883",
+                "-p",
+                "3000:3000",
+                "-p",
+                "6345:8099",
+                "-e",
+                "INVERTOR_IP=${input:invertorIp}",
+                "-e",
+                "INVERTOR_NUM_BATTERIES=1",
+                "-e",
+                "MQTT_ADDRESS=localhost",
+                "-e",
+                "MQTT_TOPIC=GivEnergy",
+                "-e",
+                "HA_AUTO_D=False",
+                "-e",
+                "LOG_LEVEL=Info",
+                "-e",
+                "SELF_RUN_LOOP_TIMER=5",
+                "rpi-matthew.fritz.box:5000/giv_tcp:2.5.0"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            }
+        },
+        {
+            "label": "Git: Add All Addon Files",
+            "type": "shell",
+            "command": "git",
+            "args": [
+                "add",
+                "config.json",
+                "build.json",
+                "repository.json",
+                "Dockerfile.hassio",
+                "run.sh",
+                "build-addon.sh",
+                "build-addon.ps1",
+                "HASSIO_ADDON.md",
+                "README_ADDON.md",
+                "DEPLOYMENT_METHODS.md",
+                ".vscode/tasks.json"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "version",
+            "type": "promptString",
+            "description": "Enter version number (e.g., 2.5.0)",
+            "default": "2.5.0"
+        },
+        {
+            "id": "invertorIp",
+            "type": "promptString",
+            "description": "Enter invertor IP address for testing",
+            "default": "192.168.1.100"
+        }
+    ]
+}
