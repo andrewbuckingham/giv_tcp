@@ -11,8 +11,9 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-REGISTRY="${REGISTRY:-rpi-matthew.fritz.box:5000}"
-REPOSITORY="${REPOSITORY:-giv_tcp}"
+# Override these with environment variables or command-line arguments
+REGISTRY="${REGISTRY:-ghcr.io}"
+REPOSITORY="${REPOSITORY:-yourusername/giv_tcp}"
 VERSION="${VERSION:-2.5.0}"
 BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
@@ -56,8 +57,8 @@ while [[ $# -gt 0 ]]; do
             echo "  --version VERSION   Set version (default: 2.5.0)"
             echo "  --tag TAG          Set Docker tag (default: same as version)"
             echo "  --arch ARCH        Architecture (default: linux/arm64 for RPi4)"
-            echo "  --registry REG     Docker registry (default: rpi-matthew.fritz.box:5000)"
-            echo "  --repository REPO  Repository name (default: giv_tcp)"
+            echo "  --registry REG     Docker registry (default: ghcr.io)"
+            echo "  --repository REPO  Repository name (default: yourusername/giv_tcp)"
             echo "  --help             Show this help message"
             echo ""
             echo "Examples:"

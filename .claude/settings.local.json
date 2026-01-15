@@ -5,7 +5,10 @@
       "Bash(pip install:*)",
       "Bash(python -m py_compile:*)",
       "Bash(chmod:*)",
-      "Bash(bash build-addon.sh:*)"
+      "Bash(bash build-addon.sh:*)",
+      "Bash(git mv:*)",
+      "Bash(git add:*)",
+      "Bash(git restore:*)"
     ]
   }
 }

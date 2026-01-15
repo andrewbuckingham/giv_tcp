@@ -5,14 +5,23 @@
             "label": "Build Add-on: Local (RPi4)",
             "type": "shell",
             "command": "${workspaceFolder}/build-addon.sh",
-            "args": [],
+            "args": [
+                "--registry",
+                "${input:registry}",
+                "--repository",
+                "${input:repository}"
+            ],
             "windows": {
                 "command": "powershell",
                 "args": [
                     "-ExecutionPolicy",
                     "Bypass",
                     "-File",
-                    "${workspaceFolder}/build-addon.ps1"
+                    "${workspaceFolder}/build-addon.ps1",
+                    "-Registry",
+                    "${input:registry}",
+                    "-Repository",
+                    "${input:repository}"
                 ]
             },
             "problemMatcher": [],

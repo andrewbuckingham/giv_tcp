@@ -7,8 +7,8 @@ param(
     [string]$Version = "2.5.0",
     [string]$Tag = "",
     [string]$Architecture = "linux/arm64",
-    [string]$Registry = "rpi-matthew.fritz.box:5000",
-    [string]$Repository = "giv_tcp",
+    [string]$Registry = "ghcr.io",
+    [string]$Repository = "yourusername/giv_tcp",
     [switch]$Help = $false
 )
 
@@ -22,8 +22,8 @@ Options:
   -Version VERSION       Set version (default: 2.5.0)
   -Tag TAG              Set Docker tag (default: same as version)
   -Architecture ARCH    Architecture (default: linux/arm64 for RPi4)
-  -Registry REG         Docker registry (default: rpi-matthew.fritz.box:5000)
-  -Repository REPO      Repository name (default: giv_tcp)
+  -Registry REG         Docker registry (default: ghcr.io)
+  -Repository REPO      Repository name (default: yourusername/giv_tcp)
   -Help                 Show this help message
 
 Examples:
