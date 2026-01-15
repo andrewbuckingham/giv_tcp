@@ -113,7 +113,7 @@ $BuildArgs = @(
     "--file", "Dockerfile.hassio",
     "--build-arg", "BUILD_VERSION=$Version",
     "--build-arg", "BUILD_DATE=$BuildDate",
-    "--build-arg", "BUILD_FROM=ghcr.io/home-assistant/amd64-base-python:3.11-alpine3.19",
+    "--build-arg", "BUILD_FROM=ghcr.io/home-assistant/aarch64-base-python:3.11-alpine3.19",
     "--tag", "${FullImage}:${Tag}"
 )
 

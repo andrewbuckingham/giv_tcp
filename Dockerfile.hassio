@@ -1,5 +1,8 @@
 # Home Assistant Add-on Dockerfile for GivTCP
-# Multi-architecture support via build.json
+# Built for Raspberry Pi 4 (aarch64)
+
+# Build arguments
+ARG BUILD_FROM=ghcr.io/home-assistant/aarch64-base-python:3.11-alpine3.19
 
 # Stage 1: Build Vue.js frontend
 FROM node:current-alpine AS givtcp_vuejs_builder
@@ -16,24 +19,21 @@ RUN npm install && \
 ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
+# Re-declare build arguments for stage 2
+ARG BUILD_VERSION
+ARG BUILD_DATE
+
 # Install system dependencies
+# Note: bashio is already included in the Home Assistant base image
 RUN apk add --no-cache \
     bash \
     mosquitto \
     nginx \
     redis \
     tzdata \
-    wget
-
-# Install bashio (Home Assistant helper library)
-RUN apk add --no-cache curl jq \
-    && curl -J -L -o /tmp/bashio.tar.gz \
-        "https://github.com/hassio-addons/bashio/archive/v0.16.0.tar.gz" \
-    && mkdir /tmp/bashio \
-    && tar zxvf /tmp/bashio.tar.gz --strip 1 -C /tmp/bashio \
-    && mv /tmp/bashio/lib /usr/lib/bashio \
-    && ln -s /usr/lib/bashio/bashio /usr/bin/bashio \
-    && rm -rf /tmp/bashio*
+    wget \
+    curl \
+    jq
 
 # Create necessary directories
 RUN mkdir -p /run/nginx /config /app/GivTCP/logs

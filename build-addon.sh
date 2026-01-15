@@ -124,7 +124,7 @@ BUILD_CMD="${BUILD_CMD} --platform ${ARCHITECTURES}"
 BUILD_CMD="${BUILD_CMD} --file Dockerfile.hassio"
 BUILD_CMD="${BUILD_CMD} --build-arg BUILD_VERSION=${VERSION}"
 BUILD_CMD="${BUILD_CMD} --build-arg BUILD_DATE=${BUILD_DATE}"
-BUILD_CMD="${BUILD_CMD} --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base-python:3.11-alpine3.19"
+BUILD_CMD="${BUILD_CMD} --build-arg BUILD_FROM=ghcr.io/home-assistant/aarch64-base-python:3.11-alpine3.19"
 
 # Add tags
 BUILD_CMD="${BUILD_CMD} --tag ${FULL_IMAGE}:${TAG}"
