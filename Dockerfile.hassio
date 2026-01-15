@@ -1,0 +1,87 @@
+# Home Assistant Add-on Dockerfile for GivTCP
+# Multi-architecture support via build.json
+
+# Stage 1: Build Vue.js frontend
+FROM node:current-alpine AS givtcp_vuejs_builder
+
+WORKDIR /app
+
+COPY givtcp-vuejs .
+
+RUN npm install && \
+    npm run build && \
+    mv dist/index.html dist/config.html
+
+# Stage 2: Home Assistant Add-on
+ARG BUILD_FROM
+FROM ${BUILD_FROM}
+
+# Install system dependencies
+RUN apk add --no-cache \
+    bash \
+    mosquitto \
+    nginx \
+    redis \
+    tzdata \
+    wget
+
+# Install bashio (Home Assistant helper library)
+RUN apk add --no-cache curl jq \
+    && curl -J -L -o /tmp/bashio.tar.gz \
+        "https://github.com/hassio-addons/bashio/archive/v0.16.0.tar.gz" \
+    && mkdir /tmp/bashio \
+    && tar zxvf /tmp/bashio.tar.gz --strip 1 -C /tmp/bashio \
+    && mv /tmp/bashio/lib /usr/lib/bashio \
+    && ln -s /usr/lib/bashio/bashio /usr/bin/bashio \
+    && rm -rf /tmp/bashio*
+
+# Create necessary directories
+RUN mkdir -p /run/nginx /config /app/GivTCP/logs
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy Nginx configuration
+COPY ingress.conf /etc/nginx/http.d/
+COPY ingress_no_ssl.conf /app/ingress_no_ssl.conf
+RUN rm -f /etc/nginx/http.d/default.conf
+
+# Copy application code
+COPY GivTCP/ ./GivTCP/
+COPY WebDashboard/ ./WebDashboard/
+COPY GivTCP/givenergy_modbus_async/ /usr/local/lib/python3.11/site-packages/givenergy_modbus_async/
+
+# Copy configuration files
+COPY api.json ./GivTCP/api.json
+COPY startup.py .
+COPY redis.conf .
+COPY settings.json .
+COPY ingress/ ./ingress/
+
+# Copy Vue.js frontend from builder stage
+COPY --from=givtcp_vuejs_builder /app/dist /app/ingress/
+
+# Copy Home Assistant add-on run script
+COPY run.sh /
+RUN chmod a+x /run.sh
+
+# Expose ports
+EXPOSE 1883 3000 6379 8099
+
+# Labels
+LABEL \
+    io.hass.name="GivTCP" \
+    io.hass.description="GivEnergy integration for Home Assistant" \
+    io.hass.type="addon" \
+    io.hass.version="${BUILD_VERSION}"
+
+# Health check
+HEALTHCHECK --interval=60s --timeout=10s --start-period=120s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:6345/readData || exit 1
+
+# Start add-on
+CMD ["/run.sh"]

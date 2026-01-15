@@ -3,7 +3,9 @@
     "allow": [
       "Bash(python -m pytest:*)",
       "Bash(pip install:*)",
-      "Bash(python -m py_compile:*)"
+      "Bash(python -m py_compile:*)",
+      "Bash(chmod:*)",
+      "Bash(bash build-addon.sh:*)"
     ]
   }
 }
