@@ -4,6 +4,10 @@
 # Stop the Nova Project files from getting published
 .nova
 
+# Claude Code files
+.claude/settings.local.json
+tmpclaude-*-cwd
+
 # Stop the gitignore file from being published
 .gitignore
 

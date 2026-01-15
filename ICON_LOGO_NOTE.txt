@@ -1,0 +1,28 @@
+ICON AND LOGO FILES NEEDED
+==========================
+
+For Home Assistant add-on store display, please create:
+
+1. icon.png
+   - Size: 256x256 pixels
+   - Format: PNG with transparency
+   - Content: GivTCP or GivEnergy logo
+
+2. logo.png
+   - Size: 1024x256 pixels (4:1 ratio)
+   - Format: PNG with transparency
+   - Content: GivTCP full logo with text
+
+These files should be placed in the repository root directory.
+
+Current placeholders:
+- icon.png: Missing (use GivEnergy logo or create custom)
+- logo.png: Missing (use GivEnergy logo or create custom)
+
+The add-on will work without these files, but they improve the
+appearance in the Home Assistant add-on store.
+
+You can use the GivEnergy logo from:
+https://givenergy.co.uk/
+
+Or create custom logos using the GivTCP branding.

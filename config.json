@@ -1,0 +1,77 @@
+{
+  "name": "GivTCP",
+  "version": "2.5.0",
+  "slug": "givtcp",
+  "description": "GivEnergy integration for Home Assistant - read and control GivEnergy inverters and batteries",
+  "url": "https://github.com/andrewbuckingham/giv_tcp",
+  "arch": ["aarch64"],
+  "startup": "application",
+  "boot": "auto",
+  "init": false,
+  "privileged": ["SYS_RAWIO"],
+  "host_network": false,
+  "hassio_api": true,
+  "hassio_role": "default",
+  "homeassistant_api": true,
+  "ports": {
+    "1883/tcp": 1883,
+    "3000/tcp": 3000,
+    "6379/tcp": null,
+    "8099/tcp": 6345
+  },
+  "ports_description": {
+    "1883/tcp": "MQTT broker",
+    "3000/tcp": "Web dashboard",
+    "6379/tcp": "Redis (internal only)",
+    "8099/tcp": "REST API and configuration interface"
+  },
+  "map": ["config:rw", "ssl"],
+  "options": {
+    "invertor_ip": "",
+    "num_batteries": 1,
+    "mqtt_address": "core-mosquitto",
+    "mqtt_username": "",
+    "mqtt_password": "",
+    "mqtt_topic": "GivEnergy",
+    "ha_auto_discovery": true,
+    "log_level": "Info",
+    "self_run_loop_timer": 5,
+    "datasmoother": "High",
+    "feature_flags": {
+      "use_new_cache": false,
+      "use_new_locks": false,
+      "use_new_services": false
+    }
+  },
+  "schema": {
+    "invertor_ip": "str",
+    "num_batteries": "int(0,3)",
+    "mqtt_address": "str",
+    "mqtt_username": "str?",
+    "mqtt_password": "password?",
+    "mqtt_topic": "str",
+    "ha_auto_discovery": "bool",
+    "log_level": "list(Debug|Info|Warning|Error|Critical)?",
+    "print_raw": "bool?",
+    "self_run_loop_timer": "int(1,60)?",
+    "queue_retries": "int(1,10)?",
+    "datasmoother": "list(Off|Low|Medium|High)?",
+    "palm_winter": "bool?",
+    "palm_shoulder": "bool?",
+    "palm_min_soc_target": "int(0,100)?",
+    "palm_max_soc_target": "int(0,100)?",
+    "palm_batt_reserve": "int(0,100)?",
+    "palm_batt_utilisation": "float(0.0,1.0)?",
+    "influx_output": "bool?",
+    "influx_url": "str?",
+    "influx_token": "password?",
+    "influx_bucket": "str?",
+    "influx_org": "str?",
+    "feature_flags": {
+      "use_new_cache": "bool?",
+      "use_new_locks": "bool?",
+      "use_new_services": "bool?"
+    }
+  },
+  "image": "rpi-matthew.fritz.box:5000/giv_tcp-{arch}"
+}

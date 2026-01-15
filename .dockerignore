@@ -13,3 +13,49 @@ WebDashboard/graphics
 # WebDashboard is a static site - node is not required
 # except as a helper to serve the site for development
 WebDashboard/package*
+
+# Build and deployment files
+build.sh
+build.ps1
+Makefile
+DOCKER_DEPLOYMENT.md
+docker-compose.override.yml
+
+# Environment files
+.env
+.env.example
+.env.local
+
+# Test files
+tests/
+pytest.ini
+.pytest_cache
+requirements-dev.txt
+.coverage
+htmlcov/
+
+# Documentation
+README.md
+docs/
+
+# IDE files
+.idea/
+*.swp
+*.swo
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# Temporary files
+tmp/
+temp/
+backups/
+*.bak
+*.log
+
+# CI/CD
+.github/
+.gitlab-ci.yml

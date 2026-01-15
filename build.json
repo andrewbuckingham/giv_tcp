@@ -1,0 +1,6 @@
+{
+  "build_from": {
+    "aarch64": "ghcr.io/home-assistant/aarch64-base-python:3.11-alpine3.19"
+  },
+  "args": {}
+}
