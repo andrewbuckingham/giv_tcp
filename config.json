@@ -65,7 +65,7 @@
     "influx_token": "password?",
     "influx_bucket": "str?",
     "influx_org": "str?",
-    "feature_flag_use_new_cache": "bool?",
+    "feature_flag_use_new_cache": "bool?", 
     "feature_flag_use_new_locks": "bool?",
     "feature_flag_use_new_services": "bool?"
   },
