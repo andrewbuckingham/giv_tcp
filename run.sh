@@ -72,9 +72,9 @@ if bashio::config.exists 'influx_output'; then
 fi
 
 # Phase 1-5 Refactoring Feature Flags
-export USE_NEW_CACHE=$(bashio::config 'feature_flags.use_new_cache' 'false')
-export USE_NEW_LOCKS=$(bashio::config 'feature_flags.use_new_locks' 'false')
-export USE_NEW_SERVICES=$(bashio::config 'feature_flags.use_new_services' 'false')
+export USE_NEW_CACHE=$(bashio::config 'feature_flag_use_new_cache' 'false')
+export USE_NEW_LOCKS=$(bashio::config 'feature_flag_use_new_locks' 'false')
+export USE_NEW_SERVICES=$(bashio::config 'feature_flag_use_new_services' 'false')
 
 # Log feature flag status
 bashio::log.info "Feature Flags:"
