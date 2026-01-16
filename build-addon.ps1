@@ -4,7 +4,7 @@
 
 param(
     [switch]$Push = $false,
-    [string]$Version = "2.5.0",
+    [string]$Version = "2.5.1",
     [string]$Tag = "",
     [string]$Architecture = "linux/arm64",
     [string]$Registry = "ghcr.io",

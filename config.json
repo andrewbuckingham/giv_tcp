@@ -1,8 +1,8 @@
 {
   "name": "GivTCP",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "slug": "givtcp",
-  "description": "GivEnergy integration for Home Assistant - read and control GivEnergy inverters and batteries",
+  "description": "GivEnergy (ADB) integration for Home Assistant - read and control GivEnergy inverters and batteries",
   "url": "https://github.com/andrewbuckingham/giv_tcp",
   "arch": ["aarch64"],
   "startup": "application",
@@ -37,11 +37,9 @@
     "log_level": "Info",
     "self_run_loop_timer": 5,
     "datasmoother": "High",
-    "feature_flags": {
-      "use_new_cache": false,
-      "use_new_locks": false,
-      "use_new_services": false
-    }
+    "feature_flag_use_new_cache": false,
+    "feature_flag_use_new_locks": false,
+    "feature_flag_use_new_services": false
   },
   "schema": {
     "invertor_ip": "str",
@@ -67,11 +65,9 @@
     "influx_token": "password?",
     "influx_bucket": "str?",
     "influx_org": "str?",
-    "feature_flags": {
-      "use_new_cache": "bool?",
-      "use_new_locks": "bool?",
-      "use_new_services": "bool?"
-    }
+    "feature_flag_use_new_cache": "bool?",
+    "feature_flag_use_new_locks": "bool?",
+    "feature_flag_use_new_services": "bool?"
   },
   "image": "rpi-matthew.fritz.box:5000/giv_tcp-{arch}"
 }

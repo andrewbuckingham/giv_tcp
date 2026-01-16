@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 # Override these with environment variables or command-line arguments
 REGISTRY="${REGISTRY:-ghcr.io}"
 REPOSITORY="${REPOSITORY:-yourusername/giv_tcp}"
-VERSION="${VERSION:-2.5.0}"
+VERSION="${VERSION:-2.5.1}"
 BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
 # Parse command line arguments
